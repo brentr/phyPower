@@ -1,0 +1,20 @@
+#!/bin/sh
+: ${MAKEFLAGS:=-j$(nproc)}
+: ${INSTALL_MOD_PATH:=modules}
+export INSTALL_MOD_PATH MAKEFLAGS
+ARCHITECTURE=arm64
+SRC_LOADADDR=
+[ "$1" = all ] && set Image modules dtbs
+
+[ "$KDIR" ] || {
+  KDIR=`echo $INSTALL_MOD_PATH/lib/modules/*`
+  [ -d $INSTALL_MOD_PATH/lib/modules/* ] || {
+    echo "invalid $KDIR" >&2
+    sleep 5
+  }
+}
+  
+exec make ARCH=$ARCHITECTURE KDIR=$KDIR \
+  CROSS_COMPILE=aarch64-linux-gnu- \
+  LOCALVERSION='-rockchip64' \
+  "$@"
