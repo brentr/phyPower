@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
  * phyPower.c
- *   Brent Roman <brent@mbari.org> revised 1/14/24
+ *   Brent Roman <brent@mbari.org> revised 1/15/24
  */
 
 #include <linux/kobject.h>
@@ -20,22 +20,26 @@ MODULE_LICENSE("GPL");
 static int disablePhy(struct phy *phy)
 {
 	int try = 100;
+	if (!phy->pwr)
+		return -ENODEV;
 	while(--try) {
-	  int err;
+    	int err;
 		if (!regulator_is_enabled(phy->pwr))
 			return 0;
 		err = phy_power_off(phy);
 		if (err)
-		  return err;
+			return err;
 	}
 	return -E2BIG;
 }
 
 static int enablePhy(struct phy *phy)
 {
+	if (!phy->pwr)
+	  return -ENODEV;
 	if (regulator_is_enabled(phy->pwr))
 	  return 0;
-  return phy_power_on(phy);
+	return phy_power_on(phy);
 }
 
 
@@ -44,8 +48,8 @@ static int disableNamedPhy(struct device *dev, void *data)
 	char *phyName = data;
 	struct phy *phy = phy_get(dev, phyName);
 	int err;
-	if (IS_ERR(phy) || !phy->pwr)
-	  return 0;
+	if (IS_ERR(phy))
+		return 0;
 	if ((err = disablePhy(phy)))
 		dev_err(dev,"Failed to disable %s power (err=%d)\n", phyName, err);
 	else
@@ -59,8 +63,8 @@ static int enableNamedPhy(struct device *dev, void *data)
 	char *phyName = data;
 	struct phy *phy = phy_get(dev, phyName);
 	int err;
-	if (IS_ERR(phy) || !phy->pwr)
-	  return 0;
+	if (IS_ERR(phy))
+		return 0;
 	if ((err = enablePhy(phy)))
 		dev_err(dev,"Failed to enable %s power (err=%d)\n", phyName, err);
 	else
@@ -79,7 +83,7 @@ static ssize_t command_store(struct kobject *kobj, struct kobj_attribute *attr,
 
 	if (count > cmdSizeLimit)
 		printk(KERN_ERR "phyPower: command >%u bytes long?!\n", cmdSizeLimit);
-  else{
+	else{
 	  bool enabled;
 	  switch(*buf) {
 		  case '+':
@@ -102,7 +106,7 @@ static ssize_t command_store(struct kobject *kobj, struct kobj_attribute *attr,
 		}
 		err = bus_for_each_dev(&platform_bus_type, NULL, phyName,
 								enabled ? enableNamedPhy : disableNamedPhy);
-	  if (err <= 0)
+	  	if (err <= 0)
 		  printk(KERN_ERR "phyPower: no phy named \"%s\" (err=%d)\n", phyName, err);
 	}
 	return count;
