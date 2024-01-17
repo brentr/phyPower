@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
  * phyPower.c
- *   Brent Roman <brent@mbari.org> revised 1/15/24
+ *   Brent Roman <brent@mbari.org> revised 1/16/24
  */
 
 #include <linux/kobject.h>
@@ -13,9 +13,10 @@
 #include <linux/phy/phy.h>
 
 MODULE_AUTHOR("Brent Roman <brent@mbari.org>");
-MODULE_DESCRIPTION("Gate power to platform phys");
+MODULE_DESCRIPTION("Writing /sys/phyPower/command controls platform phy power\n"
+"\t\techo +phyName #enables; echo -phyName #disables -- 1/16/24");
 MODULE_LICENSE("GPL");
-
+MODULE_INFO(intree, "Y");  //prevent kernel from complaining it's been tainted
 
 static int disablePhy(struct phy *phy)
 {
