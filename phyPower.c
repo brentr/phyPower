@@ -107,7 +107,7 @@ static ssize_t command_store(struct kobject *kobj, struct kobj_attribute *attr,
 		}
 		err = bus_for_each_dev(&platform_bus_type, NULL, phyName,
 								enabled ? enableNamedPhy : disableNamedPhy);
-	  	if (err <= 0)
+	  if (err <= 0)
 		  printk(KERN_ERR "phyPower: no phy named \"%s\" (err=%d)\n", phyName, err);
 	}
 	return count;
